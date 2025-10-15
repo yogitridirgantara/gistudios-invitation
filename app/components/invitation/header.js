@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 
 import { Suspense, useEffect, useState, useRef } from "react";
 import Image from "next/image";
+import Aos from "aos";
 import { useSearchParams } from "next/navigation";
 import "aos/dist/aos.css";
 import MusicPlayer from "./musicPlayer";
@@ -10,29 +11,22 @@ import MusicPlayer from "./musicPlayer";
 function InvitationHeaderContent() {
   const [nama, setNama] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [aosReady, setAosReady] = useState(false); // ✅ untuk AOS setelah client mount
   const searchParams = useSearchParams();
   const musicRef = useRef(null);
 
-  // pastikan hanya render di client
+  // Client-only effect
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    // Inisialisasi AOS
+    Aos.init({ duration: 1000 });
+    setAosReady(true);
 
-  useEffect(() => {
-    if (!mounted) return;
-
-    // init AOS secara aman
-    if (typeof window !== "undefined") {
-      import("aos").then((Aos) => {
-        Aos.init({ duration: 1000 });
-      });
-    }
-
-    // ambil nama dari URL
+    // Ambil nama dari query param
     const namaURL = searchParams.get("nama");
-    if (namaURL) setNama(capitalize(namaURL));
-  }, [mounted, searchParams]);
+    if (namaURL) {
+      setNama(capitalize(namaURL));
+    }
+  }, [searchParams]);
 
   const capitalize = (str) =>
     str
@@ -41,14 +35,21 @@ function InvitationHeaderContent() {
       .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
       .join(" ");
 
+  // Scroll + start music
   const handleOpenInvitation = () => {
     setIsOpen(true);
-    if (musicRef.current) musicRef.current.startMusic();
+
+    if (musicRef.current) {
+      musicRef.current.startMusic();
+    }
 
     const element = document.getElementById("intro");
-    if (element) element.scrollIntoView({ behavior: "smooth" });
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
+  // Lock scroll sebelum klik "Open Invitation"
   useEffect(() => {
     document.body.style.overflow = isOpen ? "auto" : "hidden";
     return () => {
@@ -56,15 +57,15 @@ function InvitationHeaderContent() {
     };
   }, [isOpen]);
 
-  if (!mounted) return null;
-
   return (
     <>
       <div
         className="flex flex-col items-center justify-center min-h-screen bg-cover bg-center relative"
-        data-aos="zoom-out"
-        data-aos-duration="2000"
+        {...(aosReady
+          ? { "data-aos": "zoom-out", "data-aos-duration": "2000" }
+          : {})} // ✅ hanya render AOS di client
       >
+        {/* Background */}
         <Image
           src="/images/C-GRAY-1.jpg"
           alt="Background Image"
@@ -73,6 +74,7 @@ function InvitationHeaderContent() {
           className="absolute inset-0 z-0 object-cover opacity-50"
         />
 
+        {/* Judul Utama */}
         <div className="z-10 text-center text-gray-100 mb-80">
           <h1 className="text-[12px] md:text-xl">The Wedding Of</h1>
           <p className="mb-2 text-2xl md:text-4xl font-serif italic">
@@ -81,6 +83,7 @@ function InvitationHeaderContent() {
           <span className="text-[14px]">25 . 10 . 2025</span>
         </div>
 
+        {/* Nama Tamu */}
         <div className="flex flex-col items-center justify-center p-20 z-10">
           <div className="flex flex-col items-center justify-center mb-12">
             <p className="text-gray-100 text-sm md:text-lg font-serif text-center">
@@ -93,6 +96,7 @@ function InvitationHeaderContent() {
             )}
           </div>
 
+          {/* Tombol Open Invitation */}
           <button
             onClick={handleOpenInvitation}
             className="px-6 py-2 bg-gray-800 text-white rounded-lg shadow-md hover:bg-gray-700 transition-colors"
@@ -102,6 +106,7 @@ function InvitationHeaderContent() {
         </div>
       </div>
 
+      {/* Music Player */}
       <MusicPlayer ref={musicRef} />
     </>
   );
