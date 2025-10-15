@@ -3,7 +3,6 @@ export const dynamic = "force-dynamic";
 
 import { Suspense, useEffect, useState, useRef } from "react";
 import Image from "next/image";
-import Aos from "aos";
 import { useSearchParams } from "next/navigation";
 import "aos/dist/aos.css";
 import MusicPlayer from "./musicPlayer";
@@ -15,20 +14,24 @@ function InvitationHeaderContent() {
   const searchParams = useSearchParams();
   const musicRef = useRef(null);
 
-  // Hindari render sebelum client siap
+  // pastikan hanya render di client
   useEffect(() => {
     setMounted(true);
   }, []);
 
   useEffect(() => {
-    Aos.init({ duration: 1000 });
+    if (!mounted) return;
 
-    if (mounted) {
-      const namaURL = searchParams.get("nama");
-      if (namaURL) {
-        setNama(capitalize(namaURL));
-      }
+    // init AOS secara aman
+    if (typeof window !== "undefined") {
+      import("aos").then((Aos) => {
+        Aos.init({ duration: 1000 });
+      });
     }
+
+    // ambil nama dari URL
+    const namaURL = searchParams.get("nama");
+    if (namaURL) setNama(capitalize(namaURL));
   }, [mounted, searchParams]);
 
   const capitalize = (str) =>
@@ -53,7 +56,6 @@ function InvitationHeaderContent() {
     };
   }, [isOpen]);
 
-  // Jangan render isi sebelum mounted
   if (!mounted) return null;
 
   return (
