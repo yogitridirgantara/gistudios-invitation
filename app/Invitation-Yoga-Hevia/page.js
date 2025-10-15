@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 import Invitation from "@/components/invitation/header";
 import Intro from "@/components/invitation/intro";
 import Couple from "@/components/invitation/couple";

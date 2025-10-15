@@ -1,13 +1,15 @@
 "use client";
+export const dynamic = "force-dynamic";
 
+import { Suspense, useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import Aos from "aos";
-import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import "aos/dist/aos.css";
-import MusicPlayer from "./musicPlayer"; // import music player
+import MusicPlayer from "./musicPlayer";
 
-export default function InvitationHeader() {
+// Komponen utama kamu dipisah agar bisa dibungkus Suspense
+function InvitationHeaderContent() {
   const [nama, setNama] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const searchParams = useSearchParams();
@@ -104,5 +106,20 @@ export default function InvitationHeader() {
       {/* Music Player */}
       <MusicPlayer ref={musicRef} />
     </>
+  );
+}
+
+// Komponen utama yang diekspor
+export default function InvitationHeader() {
+  return (
+    <Suspense
+      fallback={
+        <div className="text-center mt-20 text-gray-400">
+          Memuat undangan...
+        </div>
+      }
+    >
+      <InvitationHeaderContent />
+    </Suspense>
   );
 }
