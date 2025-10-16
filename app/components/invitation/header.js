@@ -22,7 +22,7 @@ function InvitationHeaderContent() {
     setAosReady(true);
 
     // Ambil nama dari query param
-    const namaURL = searchParams.get("nama");
+    const namaURL = searchParams.get("To");
     if (namaURL) {
       setNama(capitalize(namaURL));
     }

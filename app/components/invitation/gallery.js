@@ -1,11 +1,13 @@
 "use client";
 
 import Aos from "aos";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import "aos/dist/aos.css";
 
 export default function Gallery() {
+  const [selectedImage, setSelectedImage] = useState(null);
+
   useEffect(() => {
     Aos.init({ duration: 1000 });
   }, []);
@@ -24,13 +26,21 @@ export default function Gallery() {
     "/images/C-GRAY-1.jpg",
   ];
 
+  const handleImageClick = (src) => {
+    setSelectedImage(src);
+  };
+
+  const handleClose = () => {
+    setSelectedImage(null);
+  };
+
   return (
     <section
       id="gallery"
       className="relative min-h-screen px-6 py-16 overflow-hidden"
     >
       {/* Background */}
-      <div className="absolute inset-0  bg-gradient-to-b from-white to-gray-50" />
+      <div className="absolute inset-0 bg-gradient-to-b from-white to-gray-50" />
 
       {/* Heading */}
       <div className="relative z-10 text-center mb-12">
@@ -40,13 +50,16 @@ export default function Gallery() {
         >
           Our Moments
         </h2>
-        <p className="text-gray-800 max-w-2xl mx-auto font-serif" data-aos="fade-up">
+        <p
+          className="text-gray-800 max-w-2xl mx-auto font-serif"
+          data-aos="fade-up"
+        >
           Kenangan indah yang kami abadikan dengan dua konsep berbeda, namun
           tetap satu cerita cinta
         </p>
       </div>
 
-      {/* Gallery Chessboard Style */}
+      {/* Gallery Grid */}
       <div
         className="relative z-10 grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4 max-w-6xl mx-auto"
         data-aos="zoom-in"
@@ -54,9 +67,10 @@ export default function Gallery() {
         {photos.map((src, i) => (
           <div
             key={i}
-            className={`relative aspect-square overflow-hidden rounded-lg shadow-lg ${
+            className={`relative aspect-square overflow-hidden rounded-lg shadow-lg cursor-pointer ${
               i % 2 === 0 ? "bg-white/10" : "bg-gray-800/40"
             }`}
+            onClick={() => handleImageClick(src)}
           >
             <Image
               src={src}
@@ -67,6 +81,57 @@ export default function Gallery() {
           </div>
         ))}
       </div>
+
+      {/* Popup Zoomed Image */}
+      {selectedImage && (
+        <div
+          onClick={handleClose}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fadeIn"
+        >
+          <div
+            className="relative w-[90%] md:w-[60%] lg:w-[45%] aspect-square transition-transform transform scale-100 animate-zoomIn"
+            onClick={(e) => e.stopPropagation()} // supaya klik di gambar tidak menutup popup
+          >
+            <Image
+              src={selectedImage}
+              alt="Zoomed Photo"
+              fill
+              className="object-cover rounded-xl shadow-2xl"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Animations */}
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+
+        @keyframes zoomIn {
+          from {
+            transform: scale(0.8);
+            opacity: 0;
+          }
+          to {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease forwards;
+        }
+
+        .animate-zoomIn {
+          animation: zoomIn 0.4s ease forwards;
+        }
+      `}</style>
     </section>
   );
 }
